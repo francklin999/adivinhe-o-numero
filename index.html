@@ -1,52 +1,72 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Jogo de adivinhação com três níveis de dificuldade.">
     <link rel="stylesheet" href="css/styles.css">
     <title>Adivinhe o número</title>
 </head>
-
 <body>
-    <div id="vidas">
-        <ul id="tentativas"> 
-            <li class="vida"><img src="img/heart.png" alt="vida" title="vida"></li>
-            <li class="vida"><img src="img/heart.png" alt="vida" title="vida"></li>
-            <li class="vida"><img src="img/heart.png" alt="vida" title="vida"></li>
-        </ul>
-    </div>
-    <main class="mainContainer">
-        <div class="centralizar">
-            <div class="marginAuto">
-                <h2>Adivinhe o número</h2>
-                <div id="display">
-                    <img src="img/sinal-de-interrogacao.png" alt="adivinhe" alt="adivinhe">
-                </div>
-                <div id="escolhas">
-                    <label>Escolha a dificuldade:</label>
-                    <label for="facil" title="0-10">Fácil</label>
-                    <input type="radio" name="nivel" id="facil"  title="0-10" value="11">
-                    <label for="facil" title="0-50">Médio</label>
-                    <input type="radio" name="nivel" title="0-50" id="medio" value="51">
-                    <label for="facil" title="0-100">Difícil</label>
-                    <input type="radio" name="nivel" title="0-100" id="dificil" value="101">
-                </div>
-                <div id="start">
-                    <button id="comeca" onclick="escolheNivel()">Começar</button>
-                </div>
-                <div id="corpo">
-                    <input type="text" name="valor" id="valor"  onkeypress="return event.charCode >= 48 && event.charCode <= 57">
-                    <button id="ok" onclick="escolheNivel()"><img src="img/right.png" alt="confirma" title="confirma"></button>
-                    <button id="reload" ><img src="img/reload.png" alt="reload" title="reiniciar"></button>
-                </div>
-            
-                    <span id="message"></span>
+    <main class="game" aria-labelledby="game-title">
+        <section class="game__card">
+            <header class="game__header">
+                <p class="game__eyebrow">Jogo de adivinhação</p>
+                <h1 id="game-title">Adivinhe o número</h1>
+                <p id="instructions">Escolha uma dificuldade e tente acertar em até três palpites.</p>
+            </header>
 
+            <div id="display" class="display" aria-hidden="true">
+                <img src="img/sinal-de-interrogacao.png" alt="">
             </div>
-        </div>
+
+            <div id="vidas" class="lives" aria-live="polite">
+                <span id="lives-label">3 tentativas restantes</span>
+                <ul id="tentativas" aria-hidden="true">
+                    <li class="vida"><img src="img/heart.png" alt=""></li>
+                    <li class="vida"><img src="img/heart.png" alt=""></li>
+                    <li class="vida"><img src="img/heart.png" alt=""></li>
+                </ul>
+            </div>
+
+            <form id="game-form" novalidate>
+                <fieldset id="escolhas" class="difficulty">
+                    <legend>Escolha a dificuldade</legend>
+                    <div class="difficulty__options">
+                        <label class="difficulty__option" for="facil">
+                            <input type="radio" name="nivel" id="facil" value="10" checked>
+                            <span>Fácil <small>0–10</small></span>
+                        </label>
+                        <label class="difficulty__option" for="medio">
+                            <input type="radio" name="nivel" id="medio" value="50">
+                            <span>Médio <small>0–50</small></span>
+                        </label>
+                        <label class="difficulty__option" for="dificil">
+                            <input type="radio" name="nivel" id="dificil" value="100">
+                            <span>Difícil <small>0–100</small></span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <button id="comeca" class="button button--start" type="button">Começar jogo</button>
+
+                <div id="corpo" class="guess" hidden>
+                    <label id="guess-label" for="valor">Seu palpite (entre 0 e 10)</label>
+                    <div class="guess__controls">
+                        <input type="number" name="valor" id="valor" min="0" max="10" step="1" inputmode="numeric" autocomplete="off">
+                        <button id="ok" class="button button--icon" type="submit" aria-label="Confirmar palpite">
+                            <img src="img/right.png" alt="">
+                        </button>
+                        <button id="reload" class="button button--icon" type="button" aria-label="Jogar novamente" hidden>
+                            <img src="img/reload.png" alt="">
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <p id="message" class="message" role="status" aria-live="polite"></p>
+        </section>
     </main>
     <script src="js/script.js"></script>
 </body>
-
 </html>

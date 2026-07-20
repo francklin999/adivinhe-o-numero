@@ -1,106 +1,156 @@
-let cont = 0;
-let corpo = document.querySelector('#corpo');
+const TOTAL_TENTATIVAS = 3;
 
-reload.style.visibility = 'hidden';
-corpo.style.display = 'none';
+const elementos = {
+    formulario: document.querySelector('#game-form'),
+    dificuldades: document.querySelector('#escolhas'),
+    botaoComecar: document.querySelector('#comeca'),
+    botaoConfirmar: document.querySelector('#ok'),
+    botaoReiniciar: document.querySelector('#reload'),
+    areaPalpite: document.querySelector('#corpo'),
+    palpite: document.querySelector('#valor'),
+    rotuloPalpite: document.querySelector('#guess-label'),
+    mensagem: document.querySelector('#message'),
+    display: document.querySelector('#display'),
+    vidas: [...document.querySelectorAll('.vida img')],
+    rotuloVidas: document.querySelector('#lives-label')
+};
 
-const escolheNivel = () => {
-    let nivel = document.getElementsByName('nivel');
-    let nb = null;
-    if (nb === null) {
-        for (let i = 0; i < nivel.length; i++) {
-            if (nivel[i].checked) {
-                corpo.style.display = 'block';
-                return nb = Math.floor(Math.random() * nivel[i].value);
-            }
-        }
-    }
+const estadoInicial = () => ({
+    numeroSecreto: null,
+    limite: 10,
+    tentativasRestantes: TOTAL_TENTATIVAS,
+    jogoAtivo: false
+});
+
+let estado = estadoInicial();
+
+function sortearNumero(limite) {
+    return Math.floor(Math.random() * (limite + 1));
 }
 
-document.querySelector('#ok').addEventListener('click', () => {
-    let vlInput = document.querySelector('#valor');
-    let message = document.querySelector('#message');
-    verificaVazio(vlInput,message);
-    verificaNumero(vlInput, escolheNivel(),message);
-})
-
-document.querySelector('#reload').addEventListener('click', () => {
-    window.location.reload()
-})
-
-
-const verificaVazio = (e,message) => {
-    if (e.value === '') {
-        message.innerHTML = "DIGITE UM NÚMERO!";
-        message.style.padding = "5px";
-        message.style.color = "white";
-        message.style.background = "red";
-        return
-    }
+function mostrarMensagem(texto = '', tipo = '') {
+    elementos.mensagem.textContent = texto;
+    elementos.mensagem.className = tipo ? `message message--${tipo}` : 'message';
 }
 
+function atualizarVidas() {
+    const quantidade = estado.tentativasRestantes;
+    elementos.rotuloVidas.textContent = `${quantidade} ${quantidade === 1 ? 'tentativa restante' : 'tentativas restantes'}`;
 
-const verificaNumero = (numero, nSorteado,msg) => {
-    let reload = document.querySelector('#reload');
-    let display = document.querySelector('#display');
-    let vida = document.querySelectorAll('#tentativas');
-    if (parseInt(numero.value, 10) === nSorteado) {
-        ganhou(numero, nSorteado,msg,reload,display);
-    } else {
-        perdeu(numero, nSorteado,msg,reload,display,vida);
-    }
+    elementos.vidas.forEach((coracao, indice) => {
+        coracao.src = indice < quantidade ? 'img/heart.png' : 'img/broken-heart.png';
+    });
 }
 
-const ganhou = (e, nS,message,reload,display) => {
-  
-    reload.style.visibility = 'visible';
-    message.innerHTML = "PARABÉNS VOCÊ GANHOU!";
-    message.style.padding = "5px";
-    message.style.color = "white";
-    message.style.background = "green";
-    display.style.background = "green";
-    display.innerHTML = `<span id="numero">${nS}</span>`;
+function atualizarDisplay(numero, resultado) {
+    elementos.display.className = `display display--${resultado}`;
+    elementos.display.innerHTML = '';
 
-    if (e.value.length === 3) {
-        display.style.width = "212px";
-        display.style.marginLeft = "227px";
-    } else if (e.value.length === 2) {
-        display.style.width = "154px";
-        display.style.marginLeft = "254px";
-    }
+    const conteudo = document.createElement('span');
+    conteudo.className = 'display__number';
+    conteudo.textContent = numero;
+    elementos.display.append(conteudo);
 }
 
-const perdeu = (e, nS,message,reload,display,vida) => {
-    if (parseInt(e.value, 10) > nS) {
-        message.innerHTML = "NÚMERO DIGITADO É MAIOR";
-        message.style.padding = "5px";
-        message.style.color = "white";
-        message.style.background = "blue";
-    } else {
-        message.innerHTML = "NÚMERO DIGITADO É MENOR";
-        message.style.padding = "5px";
-        message.style.color = "white";
-        message.style.background = "blue";
-    }
+function iniciarJogo() {
+    const dificuldade = document.querySelector('input[name="nivel"]:checked');
+    estado = {
+        numeroSecreto: sortearNumero(Number(dificuldade.value)),
+        limite: Number(dificuldade.value),
+        tentativasRestantes: TOTAL_TENTATIVAS,
+        jogoAtivo: true
+    };
 
-    if (cont > 2) {
-        display.style.background = "red";
-        message.innerHTML = "VOCÊ PERDEU, TENTE OUTRA VEZ!";
-        message.style.padding = "5px";
-        message.style.color = "white";
-        message.style.background = "red";
-        display.innerHTML = `<span id="numero">${nS}</span>`
-        reload.style.visibility = 'visible';
-
-        if (nS.toString().length === 3) {
-            display.style.width = "212px";
-            display.style.marginLeft = "227px";
-
-        } else if (nS.toString().length === 2) {
-            display.style.width = "154px";
-            display.style.marginLeft = "254px";
-        }
-    } else {
-        return vida[0].children[cont++].children[0].attributes[0].value = "img/broken-heart.png";
-    }
+    elementos.dificuldades.disabled = true;
+    elementos.botaoComecar.hidden = true;
+    elementos.areaPalpite.hidden = false;
+    elementos.botaoConfirmar.disabled = false;
+    elementos.botaoReiniciar.hidden = true;
+    elementos.palpite.disabled = false;
+    elementos.palpite.min = '0';
+    elementos.palpite.max = String(estado.limite);
+    elementos.palpite.value = '';
+    elementos.rotuloPalpite.textContent = `Seu palpite (entre 0 e ${estado.limite})`;
+    elementos.display.className = 'display';
+    elementos.display.innerHTML = '<img src="img/sinal-de-interrogacao.png" alt="">';
+    mostrarMensagem(`Valendo! Digite um número entre 0 e ${estado.limite}.`, 'info');
+    atualizarVidas();
+    elementos.palpite.focus();
 }
+
+function finalizarJogo(venceu) {
+    estado.jogoAtivo = false;
+    elementos.palpite.disabled = true;
+    elementos.botaoConfirmar.disabled = true;
+    elementos.botaoReiniciar.hidden = false;
+    atualizarDisplay(estado.numeroSecreto, venceu ? 'success' : 'danger');
+    mostrarMensagem(
+        venceu ? 'Parabéns, você acertou!' : `Suas tentativas acabaram. O número era ${estado.numeroSecreto}.`,
+        venceu ? 'success' : 'error'
+    );
+    elementos.botaoReiniciar.focus();
+}
+
+function validarPalpite() {
+    const texto = elementos.palpite.value.trim();
+
+    if (texto === '') {
+        mostrarMensagem('Digite um número antes de confirmar.', 'error');
+        return null;
+    }
+
+    const numero = Number(texto);
+    if (!Number.isInteger(numero) || numero < 0 || numero > estado.limite) {
+        mostrarMensagem(`Digite um número inteiro entre 0 e ${estado.limite}.`, 'error');
+        return null;
+    }
+
+    return numero;
+}
+
+function processarPalpite(evento) {
+    evento.preventDefault();
+    if (!estado.jogoAtivo) return;
+
+    const palpite = validarPalpite();
+    if (palpite === null) {
+        elementos.palpite.focus();
+        return;
+    }
+
+    if (palpite === estado.numeroSecreto) {
+        finalizarJogo(true);
+        return;
+    }
+
+    estado.tentativasRestantes -= 1;
+    atualizarVidas();
+
+    if (estado.tentativasRestantes === 0) {
+        finalizarJogo(false);
+        return;
+    }
+
+    const dica = palpite > estado.numeroSecreto ? 'O número secreto é menor.' : 'O número secreto é maior.';
+    mostrarMensagem(`${dica} Tente novamente.`, 'info');
+    elementos.palpite.select();
+}
+
+function reiniciarJogo() {
+    estado = estadoInicial();
+    elementos.dificuldades.disabled = false;
+    elementos.botaoComecar.hidden = false;
+    elementos.areaPalpite.hidden = true;
+    elementos.botaoReiniciar.hidden = true;
+    elementos.display.className = 'display';
+    elementos.display.innerHTML = '<img src="img/sinal-de-interrogacao.png" alt="">';
+    mostrarMensagem();
+    atualizarVidas();
+    elementos.botaoComecar.focus();
+}
+
+elementos.botaoComecar.addEventListener('click', iniciarJogo);
+elementos.formulario.addEventListener('submit', processarPalpite);
+elementos.botaoReiniciar.addEventListener('click', reiniciarJogo);
+
+atualizarVidas();
